@@ -16,7 +16,7 @@ this is not a general-purpose shell. it's my own personal shell, and i'm not acc
 
 ## Preview
 
-need to record again. soon.
+https://github.com/user-attachments/assets/019e85b0-a3cb-4189-8a25-d7fd998534ea
 
 ## Overview
 
