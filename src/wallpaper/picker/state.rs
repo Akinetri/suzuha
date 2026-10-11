@@ -9,7 +9,7 @@ use crate::settings::Settings;
 // the formats amane can decode
 const EXTENSIONS: [&str; 3] = ["png", "jpg", "jpeg"];
 
-// how long the cards take to slide one place, like quickshell's carousel
+// how long the cards take to slide one place
 const SLIDE: u64 = 320;
 
 // the wallpaper picker, a band of cards across the middle of the screen

@@ -234,7 +234,7 @@ Depending on which integrations are enabled, suzuha may write files like:
 ~/.local/state/amane/tmux-colors.conf
 ~/.config/btop/themes/amane.theme
 ~/.config/cava/themes/amane
-~/.cache/amane/spotify.css
+~/.cache/amane/theme/spotify.css
 ```
 
 GTK integration also generates light and dark wallpaper-derived themes under `~/.local/share/themes/` and updates the active color-scheme preference through `dconf`.
