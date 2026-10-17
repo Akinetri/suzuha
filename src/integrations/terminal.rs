@@ -10,13 +10,13 @@ const CYAN: Color = Color::rgb(0x94, 0xe2, 0xd5);
 const BLUE: Color = Color::rgb(0x89, 0xb4, 0xfa);
 
 // the 16 ansi colors, and the few around them
-struct Colors {
-    background: Color,
-    foreground: Color,
-    selection: Color,
-    cursor: Color,
-    url: Color,
-    ansi: [Color; 16],
+pub struct Colors {
+    pub background: Color,
+    pub foreground: Color,
+    pub selection: Color,
+    pub cursor: Color,
+    pub url: Color,
+    pub ansi: [Color; 16],
 }
 
 // kitty and foot color files, and the open terminals recolored on the spot
@@ -35,7 +35,7 @@ pub fn export(theme: &Theme) {
     recolor_foot(theme, &colors, &folder);
 }
 
-fn colors(theme: &Theme) -> Colors {
+pub fn colors(theme: &Theme) -> Colors {
     let light = theme.light;
 
     // pulled toward the accent, so they sit with the rest of the theme

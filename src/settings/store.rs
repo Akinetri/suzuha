@@ -6,7 +6,7 @@ use std::path::PathBuf;
 use amane::Service;
 
 // every setting and the value it has until changed
-const DEFAULTS: [(&str, &str); 70] = [
+const DEFAULTS: [(&str, &str); 85] = [
     // appearance
     ("blur_strength", "1"),
     ("reduce_transparency", "false"),
@@ -32,8 +32,13 @@ const DEFAULTS: [(&str, &str); 70] = [
     ("bar_battery", "true"),
     ("bar_memory", "true"),
     ("bar_tray", "true"),
+    ("bar_system_tray", "true"),
+    ("bar_keyboard", "true"),
+    ("bar_coffee", "true"),
+    ("bar_dnd", "true"),
     ("clock_24_hour", "false"),
     ("clock_seconds", "false"),
+    ("do_not_disturb", "false"),
     // launcher
     ("launcher_width", "620"),
     ("launcher_rows", "9"),
@@ -46,7 +51,7 @@ const DEFAULTS: [(&str, &str); 70] = [
     ("command_tmux", "true"),
     ("command_wallpapers", "true"),
     ("command_converter", "true"),
-    ("command_pomodoro", "true"),
+    ("command_stopwatch", "true"),
     // wallpaper
     ("wallpaper_folder", "~/Pictures/Wallpapers"),
     ("wallpaper_transition", "circle"),
@@ -72,6 +77,11 @@ const DEFAULTS: [(&str, &str); 70] = [
     ("widget_uv", "true"),
     ("widget_humidity", "true"),
     ("widget_air_quality", "true"),
+    ("widget_player", "true"),
+    ("widget_calendar", "true"),
+    // calendar
+    ("calendar_urls", ""),
+    ("calendar_minutes", "15"),
     // weather
     ("weather_place", ""),
     ("weather_latitude", ""),
@@ -86,6 +96,12 @@ const DEFAULTS: [(&str, &str); 70] = [
     ("integration_spotify", "false"),
     ("integration_btop", "false"),
     ("integration_cava", "false"),
+    ("integration_qt", "false"),
+    ("integration_alacritty", "false"),
+    ("integration_fish", "false"),
+    ("integration_legcord", "false"),
+    ("integration_telegram", "false"),
+    ("integration_firefox", "false"),
 ];
 
 /*

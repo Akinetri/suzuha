@@ -2,6 +2,7 @@ mod about;
 mod appearance;
 mod bar;
 mod behavior;
+mod calendar;
 mod colors;
 mod floating;
 mod integrations;
@@ -27,6 +28,7 @@ pub fn build(shown: Shown, page: &mut Page) {
         Shown::Behavior => behavior::build(page),
         Shown::Floating => floating::build(page),
         Shown::Weather => weather::build(page),
+        Shown::Calendar => calendar::build(page),
         Shown::Integrations => integrations::build(page),
         Shown::About => about::build(page),
     }

@@ -50,6 +50,10 @@ pub fn build(page: &mut Page) {
     switch::add(page, "bar_clock", "Clock and date", "Show time and date in the center section");
     switch::add(page, "bar_battery", "Battery", "Show battery status");
     switch::add(page, "bar_memory", "Memory", "Show memory usage");
+    switch::add(page, "bar_system_tray", "App tray", "Show the icons apps like Telegram and Steam put in the tray");
+    switch::add(page, "bar_keyboard", "Keyboard layout", "Show the current layout, click to switch it");
+    switch::add(page, "bar_coffee", "Coffee", "Keep the screen awake and the machine from sleeping");
+    switch::add(page, "bar_dnd", "Do not disturb", "Hold notification popups back");
 
     switch::add(
         page,

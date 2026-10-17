@@ -1,4 +1,4 @@
-mod art;
+pub mod art;
 mod cava;
 mod fader;
 mod media;

@@ -22,8 +22,8 @@ pub enum Kind {
     // opens the file converter
     Converter,
 
-    // opens the pomodoro timer
-    Pomodoro,
+    // opens the stopwatch
+    Stopwatch,
 
     // switches the search to tmux sessions
     TmuxCommand,
@@ -108,7 +108,7 @@ fn commands(search: &str) -> Vec<Entry> {
         ("Tmux sessions", "\u{f018d}", "command_tmux", Kind::TmuxCommand),
         ("Wallpapers", "\u{f02e9}", "command_wallpapers", Kind::Wallpapers),
         ("Converter", "\u{f04e1}", "command_converter", Kind::Converter),
-        ("Pomodoro", "\u{f13ab}", "command_pomodoro", Kind::Pomodoro),
+        ("Stopwatch", "\u{f13ab}", "command_stopwatch", Kind::Stopwatch),
     ];
 
     let settings = Settings::read();

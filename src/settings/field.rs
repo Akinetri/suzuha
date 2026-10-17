@@ -39,8 +39,9 @@ pub fn view(page: &Page, title: &str, detail: &str, input: TextInput) -> Rectang
 }
 
 // every setting that is typed, which the fields are named after
-const KEYS: [&str; 4] = [
+const KEYS: [&str; 5] = [
     "wallpaper_folder",
+    "calendar_urls",
     "weather_place",
     "weather_latitude",
     "weather_longitude",

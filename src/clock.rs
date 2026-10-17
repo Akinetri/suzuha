@@ -117,6 +117,21 @@ impl Clock {
         civil_date(days)
     }
 
+    // days since 1970 in local time, for a moment given as seconds since 1970
+    pub fn day_of(&self, unix: i64) -> i64 {
+        (unix + self.offset).div_euclid(SECONDS_PER_DAY)
+    }
+
+    // local seconds since midnight, for a moment given as seconds since 1970
+    pub fn seconds_into_day(&self, unix: i64) -> i64 {
+        (unix + self.offset).rem_euclid(SECONDS_PER_DAY)
+    }
+
+    // the local day today, in days since 1970
+    pub fn today_number(&self) -> i64 {
+        self.local.div_euclid(SECONDS_PER_DAY)
+    }
+
     // 24 hour time of some other moment, like "21:05" for when a notification came
     pub fn hours_minutes(&self, moment: SystemTime) -> String {
         let since_epoch = moment

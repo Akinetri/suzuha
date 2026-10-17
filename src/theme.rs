@@ -1,4 +1,4 @@
-mod hsl;
+pub mod hsl;
 mod mode;
 mod scheme;
 

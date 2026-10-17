@@ -170,9 +170,11 @@ impl Popups {
 
         self.list.retain(|popup| !popup.leaving || popup.slide.value() < 1.0);
 
-        // nothing pops up while the panel with every notification is open
+        // nothing pops up while the panel with every notification is open, or under do not disturb
+        let quiet = crate::dnd::on();
+
         for id in listed {
-            if !self.known.contains(id) && !overlay.utility.shown {
+            if !self.known.contains(id) && !overlay.utility.shown && !quiet {
                 self.list.push(Popup::new(*id));
             }
         }

@@ -1,6 +1,6 @@
 use amane::{Color, Full, Rectangle, Text, Weight};
 
-use super::ITEM_HEIGHT;
+use super::{ITEM_HEIGHT, px};
 use crate::fonts;
 
 /*
@@ -17,7 +17,7 @@ pub fn text_width(text: &str, size: f32) -> f32 {
 pub fn view(width: f32, fill: Color) -> Rectangle {
     Rectangle::new()
         .width(width)
-        .height(ITEM_HEIGHT)
+        .height(px(ITEM_HEIGHT))
         .radius(Full)
         .fill(fill)
 }

@@ -68,5 +68,8 @@ pub fn build(page: &mut Page) {
         "Shown only when air-quality data is available",
     );
 
+    switch::add(page, "widget_player", "Music player", "Cover, progress and playback buttons");
+    switch::add(page, "widget_calendar", "Upcoming events", "The next events from the calendar links");
+
     page.end_group();
 }

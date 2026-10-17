@@ -146,6 +146,21 @@ fn content(
 
     let list_height = height - FIXED_HEIGHT;
 
+    let mut input = TextInput::new(INPUT)
+        .size(15.0)
+        .color(theme.text)
+        .placeholder("Type > for command palette...")
+        .on_change(query_changed)
+        .on_submit(|_| launch_selected());
+
+    /*
+     * text input focus is shared by every window, so a closing launcher that
+     * kept asking for it would swallow the keys of the next one, like the picker
+     */
+    if overlay.launcher.shown {
+        input = input.focused();
+    }
+
     let field = Rectangle::new()
         .width(inner_width)
         .height(FIELD_HEIGHT)
@@ -158,15 +173,7 @@ fn content(
             left: 14.0,
         })
         .align_child(Start, Center)
-        .child(
-            TextInput::new(INPUT)
-                .size(15.0)
-                .color(theme.text)
-                .placeholder("Type > for command palette...")
-                .focused()
-                .on_change(query_changed)
-                .on_submit(|_| launch_selected()),
-        );
+        .child(input);
 
     let list = list(overlay, theme, entries, inner_width, list_height);
 
@@ -551,10 +558,10 @@ fn launch_selected() {
             crate::converter::open();
         }
 
-        Kind::Pomodoro => {
+        Kind::Stopwatch => {
             overlay.launcher.hide();
 
-            crate::pomodoro::open();
+            crate::stopwatch::open();
         }
 
         Kind::TmuxCommand => search_tmux(&mut overlay),

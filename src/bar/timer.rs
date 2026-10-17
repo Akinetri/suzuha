@@ -2,10 +2,10 @@ use std::cell::RefCell;
 
 use amane::{Center, Parent, Pointer, Rectangle, Row, Text, children};
 
-use super::pill;
+use super::{pill, px};
 use crate::fonts;
 use crate::motion::{self, Glide};
-use crate::pomodoro;
+use crate::stopwatch;
 use crate::theme::Theme;
 
 // milliseconds the pill takes to open and close
@@ -26,11 +26,11 @@ thread_local! {
 }
 
 /*
- * the running pomodoro, in an accent pill that grows from nothing
+ * the running stopwatch session, in an accent pill that grows from nothing
  * and pushes its neighbours apart; none once it has closed
  */
 pub fn view(theme: &Theme) -> Option<Rectangle> {
-    let status = pomodoro::status();
+    let status = stopwatch::status();
 
     SHOWN.with_borrow_mut(|shown| {
         let shown = shown.get_or_insert_with(|| Shown {
@@ -43,7 +43,7 @@ pub fn view(theme: &Theme) -> Option<Rectangle> {
         }
 
         // the icon is about 9px wide, then a 7px gap and 20px of padding
-        let full = 9.0 + 7.0 + pill::text_width(&shown.text, TEXT_SIZE) + 20.0;
+        let full = px(9.0 + 7.0 + 20.0) + pill::text_width(&shown.text, px(TEXT_SIZE));
 
         let target = if status.is_some() { full } else { 0.0 };
 
@@ -56,18 +56,18 @@ pub fn view(theme: &Theme) -> Option<Rectangle> {
         }
 
         // what the timer is doing right now, playing or paused
-        let icon = if pomodoro::running() {
-            pomodoro::PLAY_ICON
+        let icon = if stopwatch::running() {
+            stopwatch::PLAY_ICON
         } else {
-            pomodoro::PAUSE_ICON
+            stopwatch::PAUSE_ICON
         };
 
         let icon = Text::new(icon)
-            .size(14.0)
+            .size(px(14.0))
             .font(fonts::NERD)
             .color(theme.on_accent);
 
-        let label = pill::label(&shown.text, TEXT_SIZE, theme.on_accent);
+        let label = pill::label(&shown.text, px(TEXT_SIZE), theme.on_accent);
 
         // the content fades in as the pill opens, and is clipped while it is narrow
         let content = Rectangle::new()
@@ -75,12 +75,12 @@ pub fn view(theme: &Theme) -> Option<Rectangle> {
             .height(Parent)
             .opacity(width / full)
             .align_child(Center, Center)
-            .child(Row::new(children![icon, label]).gap(7.0).align(Center));
+            .child(Row::new(children![icon, label]).gap(px(7.0)).align(Center));
 
         let pill = pill::view(width, theme.accent)
             .clip()
             .cursor(Pointer)
-            .on_click(|_| pomodoro::toggle())
+            .on_click(|_| stopwatch::toggle())
             .align_child(Center, Center)
             .child(content);
 

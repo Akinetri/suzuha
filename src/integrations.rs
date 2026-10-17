@@ -1,7 +1,12 @@
+mod alacritty;
 mod btop;
 mod cava;
+mod firefox;
+mod fish;
 mod gtk;
+mod qt;
 mod spotify;
+mod telegram;
 mod terminal;
 mod tmux;
 mod vesktop;
@@ -16,11 +21,17 @@ use crate::settings::Settings;
 use crate::theme::{self, Theme};
 
 // the settings key and the writer of each program that takes the shell's colors
-const PROGRAMS: [(&str, fn(&Theme)); 7] = [
+const PROGRAMS: [(&str, fn(&Theme)); 13] = [
     ("integration_gtk", gtk::export),
+    ("integration_qt", qt::export),
     ("integration_terminal", terminal::export),
+    ("integration_alacritty", alacritty::export),
+    ("integration_fish", fish::export),
     ("integration_tmux", tmux::export),
     ("integration_vesktop", vesktop::export),
+    ("integration_legcord", vesktop::export_legcord),
+    ("integration_telegram", telegram::export),
+    ("integration_firefox", firefox::export),
     ("integration_spotify", spotify::export),
     ("integration_btop", btop::export),
     ("integration_cava", cava::export),

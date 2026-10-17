@@ -3,7 +3,7 @@ use amane::{
     children,
 };
 
-use super::{pill, ring, timer};
+use super::{pill, px, ring, timer};
 use crate::clock::Clock;
 use crate::settings::Settings;
 use crate::fonts;
@@ -52,7 +52,7 @@ pub fn view(theme: &Theme, width: f32) -> Row {
     Row::new(items)
         .width(width)
         .height(Parent)
-        .gap(2.0)
+        .gap(px(2.0))
         .justify(Center)
         .align(Center)
 }
@@ -77,31 +77,31 @@ fn audio(theme: &Theme) -> Rectangle {
     let microphone_value = f32::from(audio.microphone_volume()) / 100.0;
 
     let speaker = Rectangle::new()
-        .width(RING_SIZE)
-        .height(RING_SIZE)
+        .width(px(RING_SIZE))
+        .height(px(RING_SIZE))
         .on_scroll(scroll_volume)
-        .child(ring::view(RING_SIZE, RING_THICKNESS, speaker_value, speaker_color, theme.border));
+        .child(ring::view(px(RING_SIZE), px(RING_THICKNESS), speaker_value, speaker_color, theme.border));
 
     let microphone = Rectangle::new()
-        .width(RING_SIZE)
-        .height(RING_SIZE)
+        .width(px(RING_SIZE))
+        .height(px(RING_SIZE))
         .on_scroll(scroll_microphone)
         .child(ring::view(
-            RING_SIZE,
-            RING_THICKNESS,
+            px(RING_SIZE),
+            px(RING_THICKNESS),
             microphone_value,
             microphone_color,
             theme.border,
         ));
 
     // two rings 8px apart, plus 16px of padding
-    let width = RING_SIZE * 2.0 + 8.0 + 16.0;
+    let width = px(RING_SIZE * 2.0 + 8.0 + 16.0);
 
     pill::view(width, theme.surface)
         .cursor(Pointer)
         .on_click(|_| Overlay::toggle_control_center())
         .align_child(Center, Center)
-        .child(Row::new(children![speaker, microphone]).gap(8.0).align(Center))
+        .child(Row::new(children![speaker, microphone]).gap(px(8.0)).align(Center))
 }
 
 // "artist - title", or "No media" while nothing plays
@@ -116,10 +116,10 @@ fn media(theme: &Theme) -> Rectangle {
         format!("{} - {}", media.artist(), media.title())
     };
 
-    let text_width = pill::text_width(&text, 13.0).min(MEDIA_TEXT_WIDTH);
+    let text_width = pill::text_width(&text, px(13.0)).min(px(MEDIA_TEXT_WIDTH));
 
     let icon = Text::new(MEDIA_ICON)
-        .size(14.0)
+        .size(px(14.0))
         .font(fonts::NERD)
         .color(theme.success);
 
@@ -127,16 +127,16 @@ fn media(theme: &Theme) -> Rectangle {
         .width(text_width)
         .height(Parent)
         .align_child(amane::Start, Center)
-        .child(pill::label(&text, 13.0, theme.text).elide());
+        .child(pill::label(&text, px(13.0), theme.text).elide());
 
     // the icon is about 9px wide, then a 7px gap and 20px of padding
-    let width = 9.0 + 7.0 + text_width + 20.0;
+    let width = px(9.0 + 7.0 + 20.0) + text_width;
 
     pill::view(width, theme.surface)
         .cursor(Pointer)
         .on_click(|_| Media::play_pause())
         .align_child(Center, Center)
-        .child(Row::new(children![icon, label]).gap(7.0).align(Center))
+        .child(Row::new(children![icon, label]).gap(px(7.0)).align(Center))
 }
 
 // "09:05 PM  •  Tuesday, 29 Sep 2026", plain text with 8px in front, no pill
@@ -148,8 +148,8 @@ fn clock(theme: &Theme) -> Row {
     let text = format!("{}  •  {}", clock.time(seconds), clock.date());
 
     Row::new(children![
-        Rectangle::new().width(8.0).height(1.0),
-        pill::label(&text, 15.0, theme.text),
+        Rectangle::new().width(px(8.0)).height(px(1.0)),
+        pill::label(&text, px(15.0), theme.text),
     ])
     .align(Center)
 }

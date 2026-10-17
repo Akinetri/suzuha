@@ -24,20 +24,21 @@ suzuha is my personal amane configuration: a full desktop shell in Rust rather t
 
 ### Included
 
-- Status bar with workspaces, system information, clock, media, and a pomodoro pill
+- Status bar with workspaces, system information, clock, media, a system tray for apps like Telegram, Discord and Steam, a stopwatch pill, the keyboard layout, and coffee / do-not-disturb toggles
 - Liquid shader that lets the bar and panels flow into each other, with rounded screen corners
 - Application launcher with a `>` command mode and a tmux project picker
 - Control center with media controls and a cava visualizer
 - Utility panel with Wi-Fi, Bluetooth, brightness, calendar, notifications, and a screen recorder
 - Wallpaper picker with animated transitions and shuffle
 - Wallpaper-derived dynamic color palette, plus fixed Gruvbox and Catppuccin schemes
-- Floating desktop widgets that place themselves around the wallpaper
-- Pomodoro timer
+- Floating desktop widgets that place themselves around the wallpaper, including a music player and upcoming calendar events
+- Google Calendar (or any iCal link) events on the desktop and as dots in the utility calendar
+- Focus stopwatch with today, weekly and all-time statistics
 - File converter for images, video, audio, and documents
 - Power menu
 - logind-driven Wayland lock screen
 - Built-in settings window
-- Optional theme integrations for GTK, terminals, tmux, Vesktop, Spotify, btop, and cava
+- Optional theme integrations for GTK, Qt / KDE, kitty, foot, Alacritty, fish, tmux, Vesktop, Legcord, Telegram (freshGram, AyuGram), Firefox (Pywalfox), Spotify, btop, and cava
 
 ## Installation
 
@@ -87,8 +88,10 @@ These are only needed for their corresponding features:
 | `ffmpeg` / `ffprobe` | Image, video, and audio conversion |
 | `ImageMagick 7` | Image conversion |
 | `LibreOffice` (`soffice`) | Document conversion |
-| `pw-play` / PipeWire | Pomodoro sounds |
-| `libnotify` (`notify-send`) | Pomodoro notifications |
+| `systemd-inhibit` | The coffee toggle |
+| `zip` | Telegram theme |
+| `pywalfox` | Firefox theme |
+| `kwriteconfig6` / KDE frameworks | Qt / KDE color scheme |
 | `kitty` remote control | Live kitty palette updates |
 | `dconf` | GTK theme switching |
 | `tmux` | Project launcher and generated tmux palette |
@@ -117,6 +120,9 @@ amane ipc call settings
 amane ipc call record              # start or stop a screen recording
 amane ipc call converter
 amane ipc call lock
+amane ipc call stopwatch           # toggle, also stop (saves the session) and open
+amane ipc call coffee              # toggle, also on, off
+amane ipc call dnd                 # toggle, also on, off
 ```
 
 </details>
@@ -173,11 +179,11 @@ The name and profile picture shown on the lock screen can be changed under **Set
 > [!CAUTION]
 > A Wayland session lock deliberately stays locked if the locker dies. If amane crashes while the session is locked, the compositor will not reveal the desktop; recover from another TTY if necessary.
 
-## Pomodoro & converter
+## Stopwatch & converter
 
 Two small tools that live inside the shell instead of being separate apps:
 
-- **Pomodoro** — a focus timer with a wavy progress ring, also shown as a pill on the bar
+- **Stopwatch** — one long focus session that counts up inside a wavy ring and shows as a pill on the bar; stopping it saves the session, and the window sums them up for today, this week day by day, and all time
 - **Converter** — converts and compresses images, video, audio, and documents through `ffmpeg`, ImageMagick, and LibreOffice
 
 ```sh
@@ -261,10 +267,16 @@ The floating weather widget's location is set under **Settings → Weather** wit
 
 Using approximate city-center coordinates is enough. Weather and air quality data are fetched directly from Open-Meteo; no IP geolocation service is used.
 
+## Calendar
+
+Paste your calendar's secret iCal address under **Settings → Calendar**. In Google Calendar it is under Settings → *your calendar* → Integrate calendar → Secret address in iCal format. Several links can go in, separated by spaces. Recurring events, moved and cancelled occurrences and time zones are handled; the events show on the desktop and as dots in the utility panel's calendar.
+
 ## Project structure
 
 ```text
-src/bar/            status bar, workspaces, pills, and the pomodoro ring
+src/bar/            status bar, workspaces, and pills
+src/stopwatch/      focus stopwatch, its ring and session history
+src/calendar/       iCal reading and recurring events
 src/overlay/        launcher, control center, utility panel, power menu
 src/floating/       floating desktop widgets and their placement
 src/wallpaper/      wallpaper, picker, transitions, and shuffle

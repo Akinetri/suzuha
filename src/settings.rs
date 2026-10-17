@@ -25,7 +25,7 @@ use crate::theme::{self, Theme};
 const NAME: &str = "settings";
 
 const WIDTH: f32 = 980.0;
-const HEIGHT: f32 = 680.0;
+const HEIGHT: f32 = 720.0;
 
 const MARGIN: f32 = 22.0;
 
@@ -84,12 +84,13 @@ pub enum Page {
     Behavior,
     Floating,
     Weather,
+    Calendar,
     Integrations,
     About,
 }
 
 // every page in the list's order, with its icon, label and the line under its title
-const PAGES: [(Page, &str, &str, &str); 11] = [
+const PAGES: [(Page, &str, &str, &str); 12] = [
     (Page::User, "󰀄", "User info", "Choose the name and profile picture shown on the lock screen."),
     (Page::Appearance, "󰍹", "Appearance", "Tune the shell's surfaces and blur."),
     (
@@ -133,6 +134,12 @@ const PAGES: [(Page, &str, &str, &str); 11] = [
         "󰖐",
         "Weather",
         "Choose where the weather comes from and how it reads.",
+    ),
+    (
+        Page::Calendar,
+        "\u{f00ed}",
+        "Calendar",
+        "Show events from Google Calendar or any other iCal link.",
     ),
     (
         Page::Integrations,

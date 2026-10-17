@@ -4,6 +4,7 @@ use amane::{
 };
 
 use super::{hover, hovered};
+use crate::calendar::Calendar;
 use crate::clock::{self, Clock};
 use crate::fonts;
 use crate::motion::{self, DEFAULT_SPATIAL};
@@ -51,7 +52,12 @@ struct Day {
     this_month: bool,
 
     today: bool,
+
+    // something from the calendar links happens on it
+    busy: bool,
 }
+
+const DOT: f32 = 4.0;
 
 /*
  * months sit a full width apart and slide to the chosen one, so while
@@ -274,6 +280,18 @@ fn cell(
         .weight(weight)
         .color(color);
 
+    // a dot under the number, the space kept on quiet days so every number sits alike
+    let dot_color = match (day.busy, day.today) {
+        (false, _) => Color::TRANSPARENT,
+        (true, true) => theme.on_accent,
+        (true, false) if day.this_month => theme.accent,
+        (true, false) => theme.border,
+    };
+
+    let dot = Rectangle::new().width(DOT).height(DOT).radius(DOT / 2.0).fill(dot_color);
+
+    let number = Column::new(children![number, dot]).gap(1.0).align(Center);
+
     Rectangle::new()
         .width(width)
         .height(height)
@@ -296,6 +314,8 @@ fn days(today: (i64, i64, i64), year: i64, month: i64) -> Vec<Day> {
     let (today_year, today_month, today_day) = today;
     let today = clock::days_since_1970(today_year, today_month, today_day);
 
+    let busy = Calendar::read().busy_days();
+
     let mut days = Vec::new();
 
     for index in 0..(ROWS * 7) as i64 {
@@ -307,6 +327,7 @@ fn days(today: (i64, i64, i64), year: i64, month: i64) -> Vec<Day> {
             number: date_day,
             this_month: date_month == month,
             today: date == today,
+            busy: busy.contains(&date),
         });
     }
 

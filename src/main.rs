@@ -1,19 +1,24 @@
 mod bar;
+mod calendar;
 mod clock;
+mod coffee;
 mod converter;
+mod dnd;
 mod floating;
 mod fonts;
 mod integrations;
+mod keyboard;
 mod liquid;
 mod lock_screen;
 mod motion;
 mod overlay;
-mod pomodoro;
+mod stopwatch;
 mod recorder;
 mod profile;
 mod screen_mask;
 mod settings;
 mod theme;
+mod tray;
 mod wallpaper;
 
 use amane::{App, Apps, Notifications, Service};
@@ -41,6 +46,12 @@ fn main() {
     // writes the theme out to the programs turned on under integrations
     drop(Export::read());
 
+    // the tray watcher has to be up before programs look for it
+    drop(tray::Tray::read());
+
+    // the calendar links are read before the desktop cards first ask for them
+    drop(calendar::Calendar::read());
+
     App::new()
         .font(fonts::BODY)
         .window_per_monitor(wallpaper::view)
@@ -53,6 +64,7 @@ fn main() {
         .window_per_monitor(overlay::dismiss::view)
         .window_per_monitor(overlay::view)
         .window_per_monitor(wallpaper::picker::view)
+        .window_per_monitor(tray::menu::view)
         .lock(lock_screen::view)
         .ipc("launcher", overlay::launcher::ipc)
         .ipc("utility", overlay::utility::ipc)
@@ -62,5 +74,8 @@ fn main() {
         .ipc("wallpaper", wallpaper::picker::ipc)
         .ipc("converter", converter::ipc)
         .ipc("record", recorder::ipc)
+        .ipc("stopwatch", stopwatch::ipc)
+        .ipc("coffee", coffee::ipc)
+        .ipc("dnd", dnd::ipc)
         .run();
 }

@@ -3,7 +3,7 @@ use amane::{
     Weight, Widget, Workspace, Workspaces,
 };
 
-use super::{motion, star};
+use super::{motion, px, star};
 use crate::fonts;
 use crate::overlay::Overlay;
 use crate::settings::Settings;
@@ -37,22 +37,22 @@ pub fn view(monitor: &Monitor, theme: &Theme, width: f32) -> Row {
     own.sort_by_key(|workspace| workspace.index());
 
     let logo = Rectangle::new()
-        .width(30.0)
-        .height(STRIP_HEIGHT)
+        .width(px(30.0))
+        .height(px(STRIP_HEIGHT))
         .cursor(Pointer)
         .on_click(|_| Overlay::toggle_power_menu())
         .align_child(Center, Center)
-        .child(Text::new(LOGO).size(28.0).font(fonts::NERD).color(theme.accent));
+        .child(Text::new(LOGO).size(px(28.0)).font(fonts::NERD).color(theme.accent));
 
     let name = Text::new(active_name(&own))
-        .size(14.0)
+        .size(px(14.0))
         .font(fonts::BODY)
         .weight(Weight::Medium)
         .color(theme.text);
 
     let settings = Settings::read();
 
-    let mut items: Vec<Box<dyn Widget>> = vec![Box::new(Rectangle::new().width(EDGE).height(1.0))];
+    let mut items: Vec<Box<dyn Widget>> = vec![Box::new(Rectangle::new().width(px(EDGE)).height(px(1.0)))];
 
     if settings.flag("bar_logo") {
         items.push(Box::new(logo));
@@ -69,7 +69,7 @@ pub fn view(monitor: &Monitor, theme: &Theme, width: f32) -> Row {
     Row::new(items)
         .width(width)
         .height(Parent)
-        .gap(10.0)
+        .gap(px(10.0))
         .justify(Start)
         .align(Center)
 }
@@ -92,13 +92,13 @@ fn strip(monitor: &Monitor, workspaces: &[&Workspace], theme: &Theme, style: &st
 
     let gaps = (count - 1.0).max(0.0);
 
-    let content = count * SLOT + gaps * SLOT_GAP;
+    let content = count * px(SLOT) + gaps * px(SLOT_GAP);
 
-    let (offset, rotation) = motion::highlight(&monitor.name, active, SLOT + SLOT_GAP);
+    let (offset, rotation) = motion::highlight(&monitor.name, active, px(SLOT + SLOT_GAP));
 
     let highlight = Rectangle::new()
-        .width(SLOT)
-        .height(SLOT)
+        .width(px(SLOT))
+        .height(px(SLOT))
         .radius(Full)
         .fill(theme.accent)
         .translate(offset, 0.0);
@@ -113,15 +113,15 @@ fn strip(monitor: &Monitor, workspaces: &[&Workspace], theme: &Theme, style: &st
                 .child(number(active_index, theme.on_accent)),
         ),
         "dots" => Box::new(highlight),
-        _ => Box::new(highlight.child(star::view(SLOT, rotation, theme.on_accent))),
+        _ => Box::new(highlight.child(star::view(px(SLOT), rotation, theme.on_accent))),
     };
 
     // the highlight slides over the dots, which stay where they are
-    let layers = Stack::new(vec![Box::new(Row::new(slots).gap(SLOT_GAP).align(Center)), highlight]);
+    let layers = Stack::new(vec![Box::new(Row::new(slots).gap(px(SLOT_GAP)).align(Center)), highlight]);
 
     Rectangle::new()
-        .width(content + STRIP_PADDING * 2.0)
-        .height(STRIP_HEIGHT)
+        .width(content + px(STRIP_PADDING) * 2.0)
+        .height(px(STRIP_HEIGHT))
         .radius(Full)
         .fill(theme.selected_surface)
         .align_child(Center, Center)
@@ -143,12 +143,12 @@ fn slot(workspace: &Workspace, theme: &Theme, style: &str) -> Rectangle {
     let mark = if style == "numbers" {
         number(workspace.index() as usize, color)
     } else {
-        Text::new(INACTIVE).size(11.0).font(fonts::SYMBOLS).color(color)
+        Text::new(INACTIVE).size(px(11.0)).font(fonts::SYMBOLS).color(color)
     };
 
     Rectangle::new()
-        .width(SLOT)
-        .height(SLOT)
+        .width(px(SLOT))
+        .height(px(SLOT))
         .cursor(Pointer)
         .on_click(move |_| Workspaces::focus(id))
         .align_child(Center, Center)
@@ -157,7 +157,7 @@ fn slot(workspace: &Workspace, theme: &Theme, style: &str) -> Rectangle {
 
 fn number(index: usize, color: Color) -> Text {
     Text::new(index.to_string())
-        .size(12.0)
+        .size(px(12.0))
         .font(fonts::BODY)
         .weight(Weight::Bold)
         .tight()

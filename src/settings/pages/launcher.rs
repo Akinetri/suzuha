@@ -53,7 +53,7 @@ pub fn build(page: &mut Page) {
     switch::add(page, "command_tmux", "Tmux command", "Show Tmux sessions in command mode");
     switch::add(page, "command_wallpapers", "Wallpaper command", "Show Wallpapers in command mode");
     switch::add(page, "command_converter", "Converter command", "Show Converter in command mode");
-    switch::add(page, "command_pomodoro", "Pomodoro command", "Show Pomodoro in command mode");
+    switch::add(page, "command_stopwatch", "Stopwatch command", "Show the stopwatch in command mode");
 
     page.end_group();
 }

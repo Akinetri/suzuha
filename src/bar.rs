@@ -8,6 +8,8 @@ mod system;
 mod timer;
 mod workspaces;
 
+use std::cell::Cell;
+
 use amane::{
     Color, Full, Layer, LayerWindow, Monitor, Parent, Rectangle, Row, Service, Stack, Vertical,
     Zone, children,
@@ -23,6 +25,19 @@ use reveal::Reveal;
 const CORNER_RADIUS: f32 = 16.0;
 
 pub const ITEM_HEIGHT: f32 = 26.0;
+
+// the bar's sizes are made for this height, a taller bar grows them to match
+const BASE_HEIGHT: f32 = 40.0;
+
+thread_local! {
+    // set by view() before the sections are built
+    static SCALE: Cell<f32> = const { Cell::new(1.0) };
+}
+
+// a size made for the 40px bar, grown or shrunk with the bar's height
+pub fn px(size: f32) -> f32 {
+    size * SCALE.get()
+}
 
 // what is left of an auto-hidden bar, for the pointer to find
 const TRIGGER: f32 = 2.0;
@@ -61,6 +76,8 @@ pub fn view(monitor: &Monitor) -> LayerWindow {
 
     drop(settings);
 
+    SCALE.set(height / BASE_HEIGHT);
+
     // how far the bar is out, always all the way unless it hides
     let target = if !hides || Reveal::read().inside { 1.0 } else { 0.0 };
 
@@ -74,7 +91,7 @@ pub fn view(monitor: &Monitor) -> LayerWindow {
     let sections = Row::new(children![
         workspaces::view(monitor, &theme, third),
         center::view(&theme, third),
-        system::view(&theme, third),
+        system::view(&theme, third, &monitor.name),
     ]);
 
     // taller than the bar and clipped, so only the corners away from the edge come out rounded

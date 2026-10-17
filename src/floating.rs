@@ -1,6 +1,8 @@
+mod agenda;
 mod card;
 mod memory;
 mod placement;
+mod player;
 mod sensors;
 mod weather;
 
@@ -8,8 +10,8 @@ use std::collections::HashMap;
 use std::time::SystemTime;
 
 use amane::{
-    Align, Column, Cpu, End, Full, Layer, LayerWindow, Monitor, Parent, Rectangle, Row, Service,
-    SpaceBetween, Stack, Start, Text, Weight, Widget, Workspaces, Zone, children,
+    Align, Column, Cpu, End, Full, InputArea, Layer, LayerWindow, Monitor, Parent, Rectangle, Row,
+    Service, SpaceBetween, Stack, Start, Text, Weight, Widget, Workspaces, Zone, children,
 };
 
 use crate::bar;
@@ -108,6 +110,9 @@ pub fn view(monitor: &Monitor) -> LayerWindow {
 
     let mut layers: Vec<Box<dyn Widget>> = Vec::new();
 
+    // only the cards with something to press take the pointer, clicks elsewhere reach the desktop
+    let mut pressable = Vec::new();
+
     for (name, card) in cards {
         let (x, y) = spots[&name];
 
@@ -129,6 +134,17 @@ pub fn view(monitor: &Monitor) -> LayerWindow {
             let top = y - card_height * (scale - 1.0) / 2.0;
 
             layers.push(Box::new(glass(monitor, left, top, name, scale)));
+
+            if matches!(name, Name::Player | Name::Agenda) && wanted {
+                let (width, height) = size(name, scale);
+
+                pressable.push(InputArea {
+                    x: left.round() as i32,
+                    y: top.round() as i32,
+                    width: width.round() as i32,
+                    height: height.round() as i32,
+                });
+            }
         }
 
         layers.push(Box::new(card.scale(scale).translate(x, y)));
@@ -141,7 +157,7 @@ pub fn view(monitor: &Monitor) -> LayerWindow {
         .space(Zone::Respect)
         .namespace("floating-widgets")
         .visible(wanted || shown > 0.001)
-        .click_through()
+        .input_region(pressable)
         .child(
             Rectangle::new()
                 .width(Parent)
@@ -181,6 +197,8 @@ fn size(name: Name, scale: f32) -> (f32, f32) {
     let (width, height) = match name {
         Name::Clock => (CLOCK_WIDTH, CLOCK_HEIGHT),
         Name::Weather => (WEATHER_WIDTH, WEATHER_HEIGHT),
+        Name::Player => (player::WIDTH, player::HEIGHT),
+        Name::Agenda => (agenda::WIDTH, agenda::HEIGHT),
         _ => (card::WIDTH, card::HEIGHT),
     };
 
@@ -240,6 +258,7 @@ fn spots(
         primary: sized(&[Name::Weather]),
         resources: sized(&[Name::CpuTemperature, Name::CpuUsage, Name::GpuTemperature]),
         environment: sized(&[Name::UvIndex, Name::Humidity, Name::AirQuality]),
+        media: sized(&[Name::Player, Name::Agenda]),
         text_luminance,
         analysis,
         crop: placement::crop(analysis, width, height),
@@ -252,12 +271,17 @@ fn spots(
     Some(spots)
 }
 
-// readings top left, weather top right, the air bottom left and the clock bottom right
+/*
+ * readings top left, weather top right, the air bottom left and the clock
+ * bottom right, with the player and events down the right under the weather
+ */
 fn corners(names: &[Name], width: f32, height: f32, scale: f32) -> HashMap<Name, (f32, f32)> {
     let mut spots = HashMap::new();
 
     let mut top_left = MARGIN;
     let mut bottom_left = MARGIN;
+
+    let mut right = MARGIN + WEATHER_HEIGHT * scale + GAP;
 
     for name in names {
         let (card_width, card_height) = size(*name, scale);
@@ -276,6 +300,12 @@ fn corners(names: &[Name], width: f32, height: f32, scale: f32) -> HashMap<Name,
                 bottom_left += card_width + GAP;
 
                 (bottom_left - card_width - GAP, height - MARGIN - card_height)
+            }
+
+            Name::Player | Name::Agenda => {
+                right += card_height + GAP;
+
+                (width - MARGIN - card_width, right - card_height - GAP)
             }
         };
 
@@ -366,6 +396,9 @@ fn cards(theme: &Theme) -> Vec<(Name, Rectangle)> {
         ),
     ));
 
+    cards.push((Name::Player, player::view(theme)));
+    cards.push((Name::Agenda, agenda::view(theme)));
+
     cards.retain(|(name, _)| turned_on(*name));
 
     cards
@@ -382,6 +415,8 @@ fn turned_on(name: Name) -> bool {
         Name::UvIndex => "widget_uv",
         Name::Humidity => "widget_humidity",
         Name::AirQuality => "widget_air_quality",
+        Name::Player => "widget_player",
+        Name::Agenda => "widget_calendar",
     };
 
     Settings::read().flag(key)

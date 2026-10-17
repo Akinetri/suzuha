@@ -12,6 +12,8 @@ pub enum Name {
     UvIndex,
     Humidity,
     AirQuality,
+    Player,
+    Agenda,
 }
 
 // the cards to place and the screen they go on, sizes in screen pixels
@@ -28,6 +30,9 @@ pub struct Request<'a> {
 
     pub resources: Vec<(Name, f32, f32)>,
     pub environment: Vec<(Name, f32, f32)>,
+
+    // the music player and the upcoming events
+    pub media: Vec<(Name, f32, f32)>,
 
     // the clock's text brightness, 0 to 1
     pub text_luminance: f32,
@@ -109,6 +114,7 @@ pub fn arrange(request: &Request) -> Option<HashMap<Name, (f32, f32)>> {
     let primary = search.cards(&request.primary);
     let resources = search.cards(&request.resources);
     let environment = search.cards(&request.environment);
+    let media = search.cards(&request.media);
 
     let mut candidates: Vec<(f32, Vec<Placement>)> = Vec::new();
 
@@ -155,7 +161,13 @@ pub fn arrange(request: &Request) -> Option<HashMap<Name, (f32, f32)>> {
 
         occupied.push(environment_group);
 
-        let groups_score: f32 = occupied[occupied.len() - 2..].iter().map(|group| group.score).sum();
+        let Some(media_group) = search.best_group(&media, &occupied) else {
+            continue;
+        };
+
+        occupied.push(media_group);
+
+        let groups_score: f32 = occupied[occupied.len() - 3..].iter().map(|group| group.score).sum();
 
         let total = score + groups_score - search.balance_penalty(&occupied);
 

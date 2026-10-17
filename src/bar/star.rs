@@ -1,5 +1,7 @@
 use amane::{Canvas, Color, Path, Shape, shapes};
 
+use super::px;
+
 // how far the tips reach from the middle
 const TIP: f32 = 7.5;
 
@@ -26,7 +28,7 @@ pub fn view(size: f32, degrees: f32, color: Color) -> Canvas {
         (x, y)
     };
 
-    let (start_x, start_y) = point(0.0, TIP);
+    let (start_x, start_y) = point(0.0, px(TIP));
 
     let mut star = Path::new().move_to(start_x, start_y);
 
@@ -34,8 +36,8 @@ pub fn view(size: f32, degrees: f32, color: Color) -> Canvas {
         let angle = tip as f32 * 90.0;
 
         // the handle sits between two tips, close to the middle, so the side curves inward
-        let (handle_x, handle_y) = point(angle - 45.0, WAIST);
-        let (tip_x, tip_y) = point(angle, TIP);
+        let (handle_x, handle_y) = point(angle - 45.0, px(WAIST));
+        let (tip_x, tip_y) = point(angle, px(TIP));
 
         star = star.quad_to(handle_x, handle_y, tip_x, tip_y);
     }

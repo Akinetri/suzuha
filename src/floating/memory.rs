@@ -8,7 +8,7 @@ use super::placement::Name;
 
 type Spots = HashMap<Name, (f32, f32)>;
 
-const NAMES: [Name; 8] = [
+const NAMES: [Name; 10] = [
     Name::Clock,
     Name::Weather,
     Name::CpuTemperature,
@@ -17,6 +17,8 @@ const NAMES: [Name; 8] = [
     Name::UvIndex,
     Name::Humidity,
     Name::AirQuality,
+    Name::Player,
+    Name::Agenda,
 ];
 
 /*

@@ -11,7 +11,16 @@ const END: &str = "/* amane-theme:end */";
 
 // vencord's quick css; rewritten in place, since vesktop watches the file itself
 pub fn export(theme: &Theme) {
-    let path = format!("{}/vesktop/settings/quickCss.css", config_home());
+    write_quick_css(&format!("{}/vesktop/settings/quickCss.css", config_home()), theme);
+}
+
+// legcord keeps a quick css of its own, which takes the same discord variables
+pub fn export_legcord(theme: &Theme) {
+    write_quick_css(&format!("{}/legcord/quickCss.css", config_home()), theme);
+}
+
+fn write_quick_css(path: &str, theme: &Theme) {
+    let path = String::from(path);
 
     let accent = theme.accent;
 
