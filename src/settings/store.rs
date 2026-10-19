@@ -6,7 +6,7 @@ use std::path::PathBuf;
 use amane::Service;
 
 // every setting and the value it has until changed
-const DEFAULTS: [(&str, &str); 85] = [
+const DEFAULTS: [(&str, &str); 86] = [
     // appearance
     ("blur_strength", "1"),
     ("reduce_transparency", "false"),
@@ -78,6 +78,7 @@ const DEFAULTS: [(&str, &str); 85] = [
     ("widget_humidity", "true"),
     ("widget_air_quality", "true"),
     ("widget_player", "true"),
+    ("widget_lyrics", "true"),
     ("widget_calendar", "true"),
     // calendar
     ("calendar_urls", ""),

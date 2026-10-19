@@ -11,7 +11,7 @@ use crate::motion::{self, FAST_SPATIAL};
 use crate::overlay::control_center::art;
 use crate::theme::{self, Theme};
 
-pub const WIDTH: f32 = 340.0;
+pub const WIDTH: f32 = 272.0;
 pub const HEIGHT: f32 = 132.0;
 
 const ART: f32 = 96.0;
@@ -53,7 +53,7 @@ fn hover(name: &'static str, inside: bool) {
 }
 
 // the cover beside what plays, a progress line and the playback buttons
-pub fn view(theme: &Theme) -> Rectangle {
+pub fn view(theme: &Theme, width: f32, top: f32, bottom: f32) -> Rectangle {
     let media = Media::read();
 
     let player = media.active();
@@ -75,7 +75,7 @@ pub fn view(theme: &Theme) -> Rectangle {
 
     drop(media);
 
-    let inner_width = WIDTH - 36.0;
+    let inner_width = width - 36.0;
 
     let details_width = inner_width - ART - GAP;
 
@@ -101,13 +101,13 @@ pub fn view(theme: &Theme) -> Rectangle {
     let details = Column::new(children![
         lines,
         progress(theme, details_width, position, length),
-        controls(theme, playing),
+        controls(theme, details_width, playing),
     ])
     .width(details_width)
     .height(ART)
     .justify(SpaceBetween);
 
-    card::background(theme, WIDTH, HEIGHT)
+    card::joined(theme, width, HEIGHT, top, bottom)
         .align_child(Start, Center)
         .child(Row::new(children![cover(theme, &art_url), details]).gap(GAP).align(Center))
 }
@@ -170,7 +170,8 @@ fn progress(theme: &Theme, width: f32, position: Duration, length: Duration) -> 
     Column::new(children![track, times]).gap(3.0)
 }
 
-fn controls(theme: &Theme, playing: bool) -> Row {
+// centered under the progress line
+fn controls(theme: &Theme, width: f32, playing: bool) -> Row {
     let play_icon = if playing { PAUSE_ICON } else { PLAY_ICON };
 
     let buttons: Vec<Box<dyn Widget>> = vec![
@@ -179,7 +180,7 @@ fn controls(theme: &Theme, playing: bool) -> Row {
         Box::new(button(theme, "next", NEXT_ICON, Media::next)),
     ];
 
-    Row::new(buttons).gap(6.0).align(Center)
+    Row::new(buttons).width(width).gap(6.0).justify(Center).align(Center)
 }
 
 // round, with a background only under the pointer

@@ -13,6 +13,7 @@ pub enum Name {
     Humidity,
     AirQuality,
     Player,
+    Lyrics,
     Agenda,
 }
 
@@ -31,7 +32,10 @@ pub struct Request<'a> {
     pub resources: Vec<(Name, f32, f32)>,
     pub environment: Vec<(Name, f32, f32)>,
 
-    // the music player and the upcoming events
+    // the music player with its lyrics, which only goes in a corner
+    pub player: Vec<(Name, f32, f32)>,
+
+    // the upcoming events
     pub media: Vec<(Name, f32, f32)>,
 
     // the clock's text brightness, 0 to 1
@@ -87,6 +91,9 @@ const ANCHORS: [(f32, f32); 8] = [
     (1.0, 1.0),
 ];
 
+// the screen's corners, the only spots the player takes
+const CORNERS: [(f32, f32); 4] = [(0.0, 0.0), (1.0, 0.0), (0.0, 1.0), (1.0, 1.0)];
+
 // the screen's middle, which cards should leave to the wallpaper
 const CENTER: (f32, f32, f32, f32) = (0.25, 0.16, 0.5, 0.68);
 
@@ -114,6 +121,7 @@ pub fn arrange(request: &Request) -> Option<HashMap<Name, (f32, f32)>> {
     let primary = search.cards(&request.primary);
     let resources = search.cards(&request.resources);
     let environment = search.cards(&request.environment);
+    let player = search.cards(&request.player);
     let media = search.cards(&request.media);
 
     let mut candidates: Vec<(f32, Vec<Placement>)> = Vec::new();
@@ -122,15 +130,15 @@ pub fn arrange(request: &Request) -> Option<HashMap<Name, (f32, f32)>> {
     joined.extend(primary.iter().cloned());
 
     for layout in [search.row(&joined), search.column(&joined)] {
-        for placement in search.placements(&layout, &[], false) {
+        for placement in search.placements(&layout, &[], false, &ANCHORS) {
             candidates.push((placement.score + 0.2, vec![placement]));
         }
     }
 
-    let clock_spots = search.placements(&search.row(&clock), &[], true);
+    let clock_spots = search.placements(&search.row(&clock), &[], true, &ANCHORS);
 
     for layout in [search.row(&primary), search.column(&primary)] {
-        for group in search.placements(&layout, &[], false) {
+        for group in search.placements(&layout, &[], false, &ANCHORS) {
             for spot in &clock_spots {
                 if overlaps(&group, spot, search.gap * 2) {
                     continue;
@@ -148,26 +156,30 @@ pub fn arrange(request: &Request) -> Option<HashMap<Name, (f32, f32)>> {
 
     let mut best: Option<(f32, Vec<Placement>)> = None;
 
-    for (score, mut occupied) in candidates {
-        let Some(resource_group) = search.best_group(&resources, &occupied) else {
-            continue;
-        };
+    'candidates: for (score, mut occupied) in candidates {
+        let placed = occupied.len();
 
-        occupied.push(resource_group);
+        // the player picks its corner first, the rest go around it
+        let groups = [
+            (&player, &CORNERS[..]),
+            (&resources, &ANCHORS[..]),
+            (&environment, &ANCHORS[..]),
+            (&media, &ANCHORS[..]),
+        ];
 
-        let Some(environment_group) = search.best_group(&environment, &occupied) else {
-            continue;
-        };
+        for (cards, anchors) in groups {
+            if cards.is_empty() {
+                continue;
+            }
 
-        occupied.push(environment_group);
+            let Some(group) = search.best_group(cards, &occupied, anchors) else {
+                continue 'candidates;
+            };
 
-        let Some(media_group) = search.best_group(&media, &occupied) else {
-            continue;
-        };
+            occupied.push(group);
+        }
 
-        occupied.push(media_group);
-
-        let groups_score: f32 = occupied[occupied.len() - 3..].iter().map(|group| group.score).sum();
+        let groups_score: f32 = occupied[placed..].iter().map(|group| group.score).sum();
 
         let total = score + groups_score - search.balance_penalty(&occupied);
 
@@ -295,7 +307,13 @@ impl<'a> Search<'a> {
     }
 
     // the layout at every anchor that fits and stays clear of what is taken, best first
-    fn placements(&self, layout: &Layout, occupied: &[Placement], text_only: bool) -> Vec<Placement> {
+    fn placements(
+        &self,
+        layout: &Layout,
+        occupied: &[Placement],
+        text_only: bool,
+        anchors: &[(f32, f32)],
+    ) -> Vec<Placement> {
         let (left, top, free_width, free_height) = self.bounds;
 
         let mut placements = Vec::new();
@@ -304,7 +322,7 @@ impl<'a> Search<'a> {
             return placements;
         }
 
-        for (along, down) in ANCHORS {
+        for &(along, down) in anchors {
             let x = left + ((free_width - layout.width) as f32 * along).round() as i32;
             let y = top + ((free_height - layout.height) as f32 * down).round() as i32;
 
@@ -356,11 +374,11 @@ impl<'a> Search<'a> {
         }
     }
 
-    fn best_group(&self, cards: &[Card], occupied: &[Placement]) -> Option<Placement> {
+    fn best_group(&self, cards: &[Card], occupied: &[Placement], anchors: &[(f32, f32)]) -> Option<Placement> {
         let mut best: Option<Placement> = None;
 
         for layout in [self.row(cards), self.column(cards)] {
-            let Some(first) = self.placements(&layout, occupied, false).into_iter().next() else {
+            let Some(first) = self.placements(&layout, occupied, false, anchors).into_iter().next() else {
                 continue;
             };
 

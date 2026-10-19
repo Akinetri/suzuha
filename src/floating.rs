@@ -1,5 +1,6 @@
 mod agenda;
 mod card;
+mod lyrics;
 mod memory;
 mod placement;
 mod player;
@@ -36,6 +37,10 @@ const WEATHER_HEIGHT: f32 = 160.0;
 
 const CLOCK_WIDTH: f32 = 300.0;
 const CLOCK_HEIGHT: f32 = 132.0;
+
+// the player and lyrics sit as one block, split by a thin gap with tucked-in corners
+const JOIN: f32 = 6.0;
+const JOINED_RADIUS: f32 = 8.0;
 
 // how long a card takes to glide to its spot on a new wallpaper
 const MOVE: u64 = 650;
@@ -116,17 +121,26 @@ pub fn view(monitor: &Monitor) -> LayerWindow {
     for (name, card) in cards {
         let (x, y) = spots[&name];
 
-        // a card grows around its center, so it is moved by half its growth to keep its corner on the spot
-        let (card_width, card_height) = size(name, 1.0);
-
-        let x = x + card_width * (scale - 1.0) / 2.0;
-        let y = y + card_height * (scale - 1.0) / 2.0;
-
         // each card glides on its own, named by monitor so screens never share a glide
         let key = format!("floating:{}:{name:?}", monitor.name);
 
         let x = motion::follow(&format!("{key}:x"), x, MOVE);
         let y = motion::follow(&format!("{key}:y"), y, MOVE);
+
+        let (card_width, card_height) = size(name, 1.0);
+
+        // a card wider than its spot grows away from the screen edge it sits nearest, so it never runs off it
+        let spot_width = footprint(name, 1.0).0;
+
+        let x = if x + spot_width * scale / 2.0 > width / 2.0 {
+            x - (card_width - spot_width) * scale
+        } else {
+            x
+        };
+
+        // a card grows around its center, so it is moved by half its growth to keep its corner on the spot
+        let x = x + card_width * (scale - 1.0) / 2.0;
+        let y = y + card_height * (scale - 1.0) / 2.0;
 
         // the clock floats without a card, so there is no glass behind it
         if name != Name::Clock {
@@ -174,6 +188,8 @@ pub fn view(monitor: &Monitor) -> LayerWindow {
 fn glass(monitor: &Monitor, left: f32, top: f32, name: Name, scale: f32) -> Rectangle {
     let (width, height) = size(name, scale);
 
+    let (top_radius, bottom_radius) = radii(name);
+
     let screen_width = monitor.width as f32;
     let screen_height = monitor.height as f32;
 
@@ -183,26 +199,70 @@ fn glass(monitor: &Monitor, left: f32, top: f32, name: Name, scale: f32) -> Rect
         .fill(wallpaper::blurred(screen_width, screen_height))
         .translate(-left, -top - bar::reserved_top());
 
-    Rectangle::new()
-        .width(width)
-        .height(height)
-        .radius(card::RADIUS * scale)
+    card::corners(Rectangle::new().width(width).height(height), top_radius * scale, bottom_radius * scale)
         .clip()
         .child(wallpaper)
         .translate(left, top)
 }
 
-// the room a card takes at the given scale
+// the room a card takes at the given scale, as it is drawn now
 fn size(name: Name, scale: f32) -> (f32, f32) {
+    match name {
+        Name::Player => (media_width(name) * scale, player::HEIGHT * scale),
+        Name::Lyrics => (media_width(name) * scale, lyrics::HEIGHT * scale),
+        _ => footprint(name, scale),
+    }
+}
+
+/*
+ * the room a card is placed by: its narrowest, so a long line never moves
+ * it, and with the lyrics under the player counted as one tall card
+ */
+fn footprint(name: Name, scale: f32) -> (f32, f32) {
     let (width, height) = match name {
         Name::Clock => (CLOCK_WIDTH, CLOCK_HEIGHT),
         Name::Weather => (WEATHER_WIDTH, WEATHER_HEIGHT),
+        Name::Player if joined() => (player::WIDTH, player::HEIGHT + JOIN + lyrics::HEIGHT),
         Name::Player => (player::WIDTH, player::HEIGHT),
+        Name::Lyrics => (lyrics::WIDTH, lyrics::HEIGHT),
         Name::Agenda => (agenda::WIDTH, agenda::HEIGHT),
         _ => (card::WIDTH, card::HEIGHT),
     };
 
     (width * scale, height * scale)
+}
+
+// whether the lyrics hang under the player as one block
+fn joined() -> bool {
+    turned_on(Name::Player) && turned_on(Name::Lyrics)
+}
+
+// the lyrics widen for a long line, and the player above them widens along
+fn media_width(name: Name) -> f32 {
+    match name {
+        Name::Player if !joined() => player::WIDTH,
+        _ => lyrics::width(),
+    }
+}
+
+// the top and bottom corners, tucked in where the player and lyrics meet
+fn radii(name: Name) -> (f32, f32) {
+    match name {
+        Name::Player if joined() => (card::RADIUS, JOINED_RADIUS),
+        Name::Lyrics if joined() => (JOINED_RADIUS, card::RADIUS),
+        _ => (card::RADIUS, card::RADIUS),
+    }
+}
+
+// the lyrics take their spot right under the player, wherever it went
+fn attach(mut spots: HashMap<Name, (f32, f32)>, scale: f32) -> HashMap<Name, (f32, f32)> {
+    if joined() {
+        if let Some((x, y)) = spots.get(&Name::Player).copied() {
+            spots.insert(Name::Lyrics, (x, y + (player::HEIGHT + JOIN) * scale));
+        }
+    }
+
+    spots
 }
 
 /*
@@ -222,11 +282,11 @@ fn spots(
 
     let Some(analysis) = placement.analysis() else {
         if let Some(spots) = memory::recall(monitor, names) {
-            return Some(spots);
+            return Some(attach(spots, scale));
         }
 
         if placement.settled() {
-            return Some(corners(names, width, height, scale));
+            return Some(attach(corners(names, width, height, scale), scale));
         }
 
         return None;
@@ -236,7 +296,7 @@ fn spots(
         let mut sized = Vec::new();
 
         for name in names.iter().filter(|name| group.contains(name)) {
-            let (card_width, card_height) = size(*name, scale);
+            let (card_width, card_height) = footprint(*name, scale);
 
             sized.push((*name, card_width, card_height));
         }
@@ -254,17 +314,21 @@ fn spots(
     let request = Request {
         screen: (width, height),
         usable: (MARGIN, MARGIN, width - MARGIN * 2.0, height - MARGIN * 2.0),
-        clock: size(Name::Clock, scale),
+        clock: footprint(Name::Clock, scale),
         primary: sized(&[Name::Weather]),
         resources: sized(&[Name::CpuTemperature, Name::CpuUsage, Name::GpuTemperature]),
         environment: sized(&[Name::UvIndex, Name::Humidity, Name::AirQuality]),
-        media: sized(&[Name::Player, Name::Agenda]),
+        // joined, the lyrics are part of the player's footprint
+        player: sized(if joined() { &[Name::Player][..] } else { &[Name::Player, Name::Lyrics] }),
+        media: sized(&[Name::Agenda]),
         text_luminance,
         analysis,
         crop: placement::crop(analysis, width, height),
     };
 
     let spots = placement::arrange(&request).unwrap_or_else(|| corners(names, width, height, scale));
+
+    let spots = attach(spots, scale);
 
     memory::remember(monitor, &spots);
 
@@ -284,9 +348,12 @@ fn corners(names: &[Name], width: f32, height: f32, scale: f32) -> HashMap<Name,
     let mut right = MARGIN + WEATHER_HEIGHT * scale + GAP;
 
     for name in names {
-        let (card_width, card_height) = size(*name, scale);
+        let (card_width, card_height) = footprint(*name, scale);
 
         let spot = match name {
+            // joined, the lyrics are put under the player afterwards
+            Name::Lyrics if joined() => continue,
+
             Name::Clock => (width - MARGIN - card_width, height - MARGIN - card_height),
             Name::Weather => (width - MARGIN - card_width, MARGIN),
 
@@ -302,7 +369,7 @@ fn corners(names: &[Name], width: f32, height: f32, scale: f32) -> HashMap<Name,
                 (bottom_left - card_width - GAP, height - MARGIN - card_height)
             }
 
-            Name::Player | Name::Agenda => {
+            Name::Player | Name::Lyrics | Name::Agenda => {
                 right += card_height + GAP;
 
                 (width - MARGIN - card_width, right - card_height - GAP)
@@ -396,7 +463,18 @@ fn cards(theme: &Theme) -> Vec<(Name, Rectangle)> {
         ),
     ));
 
-    cards.push((Name::Player, player::view(theme)));
+    for name in [Name::Player, Name::Lyrics] {
+        let width = media_width(name);
+        let (top, bottom) = radii(name);
+
+        let card = match name {
+            Name::Player => player::view(theme, width, top, bottom),
+            _ => lyrics::view(theme, width, top, bottom),
+        };
+
+        cards.push((name, card));
+    }
+
     cards.push((Name::Agenda, agenda::view(theme)));
 
     cards.retain(|(name, _)| turned_on(*name));
@@ -416,6 +494,7 @@ fn turned_on(name: Name) -> bool {
         Name::Humidity => "widget_humidity",
         Name::AirQuality => "widget_air_quality",
         Name::Player => "widget_player",
+        Name::Lyrics => "widget_lyrics",
         Name::Agenda => "widget_calendar",
     };
 

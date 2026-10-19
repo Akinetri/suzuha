@@ -19,12 +19,28 @@ const SURFACE_ALPHA: u8 = 200;
 
 // the rounded, see-through base every desktop card sits on
 pub fn background(theme: &Theme, width: f32, height: f32) -> Rectangle {
+    surface(theme, width, height).radius(RADIUS)
+}
+
+// the same base with its own top and bottom corners, tucked in where it meets the card it is joined to
+pub fn joined(theme: &Theme, width: f32, height: f32, top: f32, bottom: f32) -> Rectangle {
+    corners(surface(theme, width, height), top, bottom)
+}
+
+pub fn corners(rectangle: Rectangle, top: f32, bottom: f32) -> Rectangle {
+    rectangle
+        .radius_top_left(top)
+        .radius_top_right(top)
+        .radius_bottom_right(bottom)
+        .radius_bottom_left(bottom)
+}
+
+fn surface(theme: &Theme, width: f32, height: f32) -> Rectangle {
     let surface = theme.surface;
 
     Rectangle::new()
         .width(width)
         .height(height)
-        .radius(RADIUS)
         .fill(Color::rgba(surface.red(), surface.green(), surface.blue(), SURFACE_ALPHA))
         .padding(Padding {
             top: PADDING,

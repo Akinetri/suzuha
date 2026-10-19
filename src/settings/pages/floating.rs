@@ -69,6 +69,7 @@ pub fn build(page: &mut Page) {
     );
 
     switch::add(page, "widget_player", "Music player", "Cover, progress and playback buttons");
+    switch::add(page, "widget_lyrics", "Lyrics", "Synced lyrics from LRCLIB for what plays now");
     switch::add(page, "widget_calendar", "Upcoming events", "The next events from the calendar links");
 
     page.end_group();
