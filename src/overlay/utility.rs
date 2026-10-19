@@ -4,6 +4,7 @@ mod calendar;
 mod header;
 pub mod notifications;
 mod record;
+mod sound;
 mod switch;
 mod tabs;
 mod wifi;
@@ -45,6 +46,7 @@ pub enum Page {
     Notifications,
     Wifi,
     Bluetooth,
+    Sound,
     Record,
 }
 
@@ -54,7 +56,8 @@ impl Page {
             Page::Notifications => 0.0,
             Page::Wifi => 1.0,
             Page::Bluetooth => 2.0,
-            Page::Record => 3.0,
+            Page::Sound => 3.0,
+            Page::Record => 4.0,
         }
     }
 }
@@ -124,7 +127,7 @@ fn pages(overlay: &Overlay, theme: &Theme, height: f32) -> Rectangle {
 
     let mut layers: Vec<Box<dyn Widget>> = Vec::new();
 
-    for page in [Page::Notifications, Page::Wifi, Page::Bluetooth, Page::Record] {
+    for page in [Page::Notifications, Page::Wifi, Page::Bluetooth, Page::Sound, Page::Record] {
         let offset = page.index() - shown;
 
         // only pages at least partly in view are built
@@ -136,6 +139,7 @@ fn pages(overlay: &Overlay, theme: &Theme, height: f32) -> Rectangle {
             Page::Notifications => notifications::view(overlay, theme, INNER_WIDTH, height),
             Page::Wifi => wifi::view(overlay, theme, INNER_WIDTH, height),
             Page::Bluetooth => bluetooth::view(overlay, theme, INNER_WIDTH, height),
+            Page::Sound => sound::view(overlay, theme, INNER_WIDTH, height),
             Page::Record => record::view(overlay, theme, INNER_WIDTH, height),
         };
 
@@ -168,7 +172,7 @@ pub fn opened(overlay: &mut Overlay) {
     match overlay.page {
         Page::Wifi => Network::scan(),
         Page::Bluetooth => Bluetooth::start_scan(),
-        Page::Notifications | Page::Record => {}
+        Page::Notifications | Page::Sound | Page::Record => {}
     }
 }
 
@@ -189,6 +193,7 @@ pub fn ipc(arguments: &[String]) -> String {
         Some("notifications") => Some(Page::Notifications),
         Some("wifi") => Some(Page::Wifi),
         Some("bluetooth") => Some(Page::Bluetooth),
+        Some("sound") => Some(Page::Sound),
         Some("record") => Some(Page::Record),
         _ => None,
     };
