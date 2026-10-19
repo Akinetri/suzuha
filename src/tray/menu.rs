@@ -56,6 +56,9 @@ struct Open {
     // the monitor whose bar was clicked, the menu only shows there
     monitor: String,
 
+    // where across the screen the icon was clicked, the menu centers under it
+    anchor: f32,
+
     // the submenus walked into, each with its title, the top menu not counted
     trail: Vec<(i32, String)>,
 
@@ -88,6 +91,7 @@ pub fn open(item: &Item, monitor: &str) {
         owner: item.owner.clone(),
         path,
         monitor: String::from(monitor),
+        anchor: bar::pointer_x(),
         trail: Vec::new(),
         entries: None,
     };
@@ -259,7 +263,7 @@ fn key_pressed(key: Key) {
 }
 
 /*
- * the open menu in the corner under the tray, over a clear layer that
+ * the open menu under the clicked icon, over a clear layer that
  * closes it on a click anywhere else
  */
 pub fn view(monitor: &Monitor) -> LayerWindow {
@@ -290,7 +294,10 @@ pub fn view(monitor: &Monitor) -> LayerWindow {
 
     let bottom = Settings::read().text("bar_position") == "bottom";
 
-    let x = monitor.width as f32 - WIDTH - MARGIN;
+    // under the clicked icon, kept off the screen's edges
+    let right = (monitor.width as f32 - WIDTH - MARGIN).max(MARGIN);
+
+    let x = (open.anchor - WIDTH / 2.0).clamp(MARGIN, right);
 
     let y = if bottom {
         monitor.height as f32 - bar::height() - height - MARGIN

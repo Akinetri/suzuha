@@ -32,6 +32,14 @@ const BASE_HEIGHT: f32 = 40.0;
 thread_local! {
     // set by view() before the sections are built
     static SCALE: Cell<f32> = const { Cell::new(1.0) };
+
+    // where the pointer last was across the bar, for popups that open under what was clicked
+    static POINTER_X: Cell<f32> = const { Cell::new(0.0) };
+}
+
+// the pointer's last position across the bar, from the screen's left edge
+pub fn pointer_x() -> f32 {
+    POINTER_X.get()
 }
 
 // a size made for the 40px bar, grown or shrunk with the bar's height
@@ -147,6 +155,7 @@ pub fn view(monitor: &Monitor) -> LayerWindow {
                 .opacity(Curtain::read().items.value())
                 .clip()
                 .on_hover(reveal::hover)
+                .on_move(|point| POINTER_X.set(point.x))
                 .child(Rectangle::new().width(Parent).height(height).translate(0.0, slide).child(bar)),
         )
 }
