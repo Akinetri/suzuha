@@ -3,7 +3,7 @@
 this is not a general-purpose shell. it's my own personal shell, and i'm not accepting any PRs or issues for new features. If you wanna add something, fork it yourself.
 
 <div align="center">
-  <h1>suzuha (Lab Widget #008)</h1>
+  <h1>suzuha (Future Widget #008)</h1>
   <p><strong>My amane config.</strong><br>
   An opinionated Wayland desktop shell written in Rust with amane, built for Niri.</p>
 
