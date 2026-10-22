@@ -19,8 +19,11 @@ use crate::theme::{self, Theme};
 pub const WIDTH: f32 = 272.0;
 pub const HEIGHT: f32 = 196.0;
 
-// the widest the card grows for a long line, past it the line wraps onto a second row
+// the widest the card grows for long lines, past its width a line wraps onto a second row
 const MAX_WIDTH: f32 = 448.0;
+
+// a little wider when there are no lines, so the note has room to breathe
+const EMPTY_WIDTH: f32 = 304.0;
 
 // the card's padding on both sides
 const INSET: f32 = 36.0;
@@ -119,14 +122,23 @@ impl Service for Lyrics {
 
 impl Lyrics {
     fn wanted_width(&self) -> f32 {
-        if self.status != Status::Synced {
+        match self.status {
+            Status::Synced => {}
+            Status::Missing | Status::Unsynced => return EMPTY_WIDTH,
+            Status::Idle | Status::Searching => return WIDTH,
+        }
+
+        // the empty lines between verses would only pull the average down
+        let widths: Vec<f32> = self.widths.iter().copied().filter(|width| *width > 0.0).collect();
+
+        if widths.is_empty() {
             return WIDTH;
         }
 
-        let widest = self.widths.iter().copied().fold(0.0, f32::max);
+        let average = widths.iter().sum::<f32>() / widths.len() as f32;
 
         // a pixel more, so a line that just fits isn't cut by rounding
-        (widest + INSET + 1.0).clamp(WIDTH, MAX_WIDTH)
+        (average + INSET + 1.0).clamp(WIDTH, MAX_WIDTH)
     }
 
     /*
@@ -209,8 +221,8 @@ fn measure(words: &str) -> f32 {
 }
 
 /*
- * as wide as the card needs for the song's longest line, never narrower
- * than it starts; it glides there when a new song comes in
+ * as wide as the song's average line, longer ones wrap onto a second row;
+ * never narrower than it starts, it glides there when a new song comes in
  */
 pub fn width() -> f32 {
     let wanted = Lyrics::read().wanted_width();
