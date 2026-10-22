@@ -116,7 +116,7 @@ fn named(name: &str, theme_path: &str) -> Option<PathBuf> {
         }
     }
 
-    Apps::icon_path(name).map(Path::to_path_buf)
+    Apps::icon_path(name)
 }
 
 // a png or svg with this name somewhere under the folder, like hicolor/22x22/apps/name.png

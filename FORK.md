@@ -3,7 +3,7 @@
 A fork of [MystiaFin/suzuha](https://github.com/MystiaFin/suzuha). Everything below is on top of upstream `main` (`62118f3`).
 
 > [!NOTE]
-> Builds against an amane library that has `Method::sender()` and `Apps::icon_path()`.
+> Needs the library from [Akinetri/amane](https://github.com/Akinetri/amane) (branch `local`): it adds `Method::sender()`, `Apps::icon_path()`, the audio device list and text paste. Install its CLI with `cargo install --path cli`.
 
 ## Added
 
